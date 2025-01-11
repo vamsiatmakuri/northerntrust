@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        // Set environment variables if needed
+        MAVEN_HOME = '/path/to/maven' // Update with your Maven installation path
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Cloning the repository...'
+                git url: 'https://github.com/your-repo.git', branch: 'main'
+            }
+        }
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing dependencies...'
+                sh 'mvn clean install'
+            }
+        }
+        stage('Run Cucumber Tests') {
+            steps {
+                echo 'Running Cucumber tests...'
+                sh 'mvn test'
+            }
+        }
+        stage('Generate Report') {
+            steps {
+                echo 'Generating Cucumber report...'
+                cucumber buildStatus: 'UNSTABLE', fileIncludePattern: '**/cucumber-reports/*.json', sortingMethod: 'ALPHABETICAL'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace...'
+            cleanWs()
+        }
+        success {
+            echo 'Build succeeded!'
+        }
+        failure {
+            echo 'Build failed!'
+        }
+    }
+}
